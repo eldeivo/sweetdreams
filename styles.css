@@ -1,0 +1,407 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+}
+
+/* Por defecto, sin centrado */
+body {
+  display: block;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f8f8f8;
+  color: #333;
+}
+
+/* Solo centra las páginas que lo requieran */
+body.centrado {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(to right, #f06292, #a2e1ef);
+  padding: 40px 20px;
+}
+
+
+
+/* 💫 Fondo animado */
+body::before {
+    content: "";
+    position: absolute;
+    border-radius: 50% / 100%;
+    filter: blur(80px);
+    opacity: 0.35;
+    z-index: 0;
+    width: 600px;
+    height: 600px;
+    background: #f48fb1;
+    top: -150px;
+    left: -200px;
+    clip-path: ellipse(70% 40% at 30% 50%);
+    transform: rotate(15deg);
+}
+
+/* === ONDAS ANIMADAS SVG === */
+.lineas-ondas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 150%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    overflow: visible;
+}
+
+.lineas-ondas path {
+    display: block;
+    will-change: transform;
+}
+
+@keyframes moverLinea1 {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(40px); }
+}
+@keyframes moverLinea2 {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(-30px); }
+}
+@keyframes moverLinea3 {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(25px); }
+}
+@keyframes moverLinea4 {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(-20px); }
+}
+@keyframes moverLinea5 {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(35px); }
+}
+@keyframes moverLinea6 {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(-25px); }
+}
+
+.linea1 { animation: moverLinea1 10s ease-in-out infinite; }
+.linea2 { animation: moverLinea2 14s ease-in-out infinite; }
+.linea3 { animation: moverLinea3 12s ease-in-out infinite; }
+.linea4 { animation: moverLinea4 16s ease-in-out infinite; }
+.linea5 { animation: moverLinea5 18s ease-in-out infinite; }
+.linea6 { animation: moverLinea6 20s ease-in-out infinite; }
+
+/* === CONTENEDOR PRINCIPAL === */
+.contenedor {
+    background: #fff;
+    border-radius: 25px;
+    box-shadow: 0 10px 40px rgba(107, 76, 123, 0.15);
+    max-width: 1100px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    padding: 40px 60px;
+    gap: 60px;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 1;
+}
+
+/* === HEADER === */
+header {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 2;
+}
+header img.logo {
+    height: 70px;
+    width: auto;
+    border-radius: 15px;
+    box-shadow: 0 2px 8px rgba(255, 182, 193, 0.5);
+}
+
+/* === TEXTO === */
+.texto {
+    flex: 1 1 400px;
+    max-width: 550px;
+    text-align: center;
+}
+.texto h1 {
+    font-family: 'Baloo 2', cursive;
+    font-size: 3.8rem;
+    margin-bottom: 15px;
+    color: #CB6CE6;
+    text-shadow: 1px 1px 3px #f8c8dc;
+    letter-spacing: 2px;
+}
+.texto p {
+    font-size: 1.4rem;
+    margin-bottom: 30px;
+    color: #7c7296;
+    line-height: 1.5;
+}
+
+/* === BOTONES === */
+.botones a {
+    background: linear-gradient(135deg, #a2d2ff, #cdb4db);
+    color: #3b3054;
+    text-decoration: none;
+    padding: 15px 35px;
+    margin: 10px 15px 10px 0;
+    border-radius: 30px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 8px rgba(164, 182, 226, 0.6);
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+.botones a:hover {
+    background: linear-gradient(135deg, #cdb4db, #a2d2ff);
+    box-shadow: 0 6px 15px rgba(164, 182, 226, 0.9);
+    transform: translateY(-3px);
+    color: #241332;
+}
+
+/* === IMAGEN === */
+.imagen {
+    flex: 1 1 400px;
+    text-align: center;
+}
+.imagen img {
+    max-width: 100%;
+    max-height: 450px;
+    border-radius: 25px;
+    box-shadow: 0 0 35px rgba(209, 147, 188, 0.5);
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+.imagen img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 50px rgba(209, 147, 188, 0.8);
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 900px) {
+    body {
+        padding: 10px;
+    }
+    .contenedor {
+        padding: 30px 20px;
+        flex-direction: column;
+        gap: 40px;
+        max-width: 100%;
+    }
+    .texto {
+        max-width: 100%;
+    }
+    .botones a {
+        width: 80%;
+        margin: 10px auto;
+        font-size: 1.2rem;
+        padding: 15px 0;
+    }
+    .imagen img {
+        max-height: 300px;
+    }
+    header {
+        position: static;
+        margin-bottom: 20px;
+        text-align: center;
+        z-index: 2;
+    }
+}
+
+/* === LOGIN === */
+.login-container {
+    background: white;
+    padding: 40px 50px;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(107, 76, 123, 0.2);
+    width: 70vw; 
+    max-width: 450px;
+    text-align: center;
+}
+
+.login-container h2 {
+    margin-bottom: 25px;
+    color: #6b4c7b;
+}
+
+.login-container input[type="text"],
+.login-container input[type="email"],
+.login-container input[type="password"] {
+    width: 100%;
+    padding: 12px 15px;
+    margin: 12px 0 20px;
+    border: 2px solid #d8b0d9;
+    border-radius: 12px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.login-container input[type="email"]:focus,
+.login-container input[type="password"]:focus {
+    border-color: #f06292;
+}
+
+.login-container button {
+    background: #f06292;
+    color: white;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.login-container button:hover {
+    background: #d81b60;
+}
+
+.login-container .error {
+    color: #d81b60;
+    margin-bottom: 15px;
+}
+
+.login-container .link-register {
+    margin-top: 15px;
+    font-size: 0.9rem;
+}
+
+.login-container .link-register a {
+    color: #a64ca6;
+    text-decoration: none;
+}
+
+.login-container .link-register a:hover {
+    text-decoration: underline;
+}
+
+/* ==== ESTILOS DE productos.php ==== */
+.productos-page {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f06292, #a2e1ef, #bb82cb);
+    min-height: 100vh;
+    margin: 0;
+    padding: 40px 20px;
+    color: #4b3b57;
+}
+
+.productos-page h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-family: 'Baloo 2', cursive;
+    font-size: 3rem;
+    color: #cb6ce6;
+}
+
+.productos-page .mensaje {
+    background: #dcedc8;
+    color: #33691e;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+
+.productos-page .error {
+    background: #ffcdd2;
+    color: #b71c1c;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+
+.productos-page table {
+    border-collapse: collapse;
+    width: 90%;
+    max-width: 900px;
+    margin: 0 auto 40px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(107, 76, 123, 0.15);
+    overflow: hidden;
+}
+
+.productos-page th,
+.productos-page td {
+    padding: 15px 20px;
+    text-align: center;
+}
+
+.productos-page th {
+    background-color: #f48fb1;
+    color: white;
+    font-weight: 700;
+    font-family: 'Baloo 2', cursive;
+    font-size: 1.2rem;
+}
+
+.productos-page tr:nth-child(even) {
+    background-color: #f9e1f7;
+}
+
+.productos-page input[type=number] {
+    width: 70px;
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    text-align: center;
+}
+
+.productos-page button {
+    background: #f06292;
+    border: none;
+    padding: 10px 20px;
+    color: white;
+    font-weight: bold;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: background 0.3s;
+    font-family: 'Baloo 2', cursive;
+}
+
+.productos-page button:hover {
+    background: #d81b60;
+}
+
+.productos-page .saldo {
+    max-width: 900px;
+    margin: 0 auto 30px;
+    font-size: 1.3rem;
+    text-align: right;
+    font-weight: bold;
+    color: #6b4c7b;
+}
+
+.productos-page .nav-links {
+    max-width: 900px;
+    margin: 0 auto 15px;
+    text-align: right;
+}
+
+.productos-page .nav-links a {
+    text-decoration: none;
+    color: #7c7296;
+    margin-left: 15px;
+    font-weight: 600;
+}
+
+.productos-page .nav-links a:hover {
+    color: #d81b60;
+}

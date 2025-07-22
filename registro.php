@@ -25,11 +25,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($stmt->fetch()) {
             $error = "El correo ya está registrado.";
         } else {
-            // Insertar nuevo cliente con contraseña hasheada
-            $hash = password_hash($password, PASSWORD_DEFAULT);
-
+            
             $stmt = $conn->prepare("INSERT INTO clientes (nombre, correo, contraseña, saldo) VALUES (?, ?, ?, 0.00)");
-            $resultado = $stmt->execute([$nombre, $correo, $hash]);
+            $resultado = $stmt->execute([$nombre, $correo, $password]);
+
 
             if ($resultado) {
                 $success = "Registro exitoso. Ahora puedes iniciar sesión.";
@@ -46,93 +45,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
 <meta charset="UTF-8" />
 <title>Registro - Sweet Dreams</title>
-<style>
-    body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, #f06292, #a2e1ef, #bb82cb);
-        height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin: 0;
-    }
-
-    .registro-container {
-        background: white;
-        padding: 40px 50px;
-        border-radius: 20px;
-        box-shadow: 0 10px 40px rgba(107, 76, 123, 0.2);
-        width: 320px;
-        text-align: center;
-    }
-
-    h2 {
-        margin-bottom: 25px;
-        color: #6b4c7b;
-    }
-
-    input[type="text"], input[type="email"], input[type="password"] {
-        width: 100%;
-        padding: 12px 15px;
-        margin: 12px 0 20px;
-        border: 2px solid #d8b0d9;
-        border-radius: 12px;
-        font-size: 1rem;
-        outline: none;
-        transition: border-color 0.3s;
-    }
-
-    input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus {
-        border-color: #f06292;
-    }
-
-    button {
-        background: #f06292;
-        color: white;
-        padding: 15px 30px;
-        border: none;
-        border-radius: 12px;
-        font-size: 1.1rem;
-        cursor: pointer;
-        transition: background 0.3s;
-    }
-
-    button:hover {
-        background: #d81b60;
-    }
-
-    .error {
-        color: #d81b60;
-        margin-bottom: 15px;
-    }
-
-    .success {
-        color: #4caf50;
-        margin-bottom: 15px;
-    }
-
-    .link-login {
-        margin-top: 15px;
-        font-size: 0.9rem;
-    }
-
-    .link-login a {
-        color: #a64ca6;
-        text-decoration: none;
-    }
-
-    .link-login a:hover {
-        text-decoration: underline;
-    }
-</style>
+<link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="centrado">
 
-<div class="registro-container">
+<div class="login-container">
+
     <h2>Registro de Usuario</h2>
 
     <?php if ($error): ?>
-        <div class="error"><?=htmlspecialchars($error)?></div>
+        <div class="error"><?=htmlspecialchars($error)?></div> 
     <?php elseif ($success): ?>
         <div class="success"><?=htmlspecialchars($success)?></div>
     <?php endif; ?>
@@ -145,8 +67,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <button type="submit">Registrar</button>
     </form>
 
-    <div class="link-login">
-        ¿Ya tienes cuenta? <a href="index.php">Iniciar sesión</a>
+    <div class="link-login"> 
+        ¿Ya tienes cuenta? <a href="iniciarsesion.php">Iniciar sesión</a>
     </div>
 </div>
 
