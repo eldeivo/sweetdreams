@@ -14,12 +14,14 @@ $options = [
 ];
 
 try {
+    $pdo = new PDO($dsn, $user, $pass, $options);
     $conn = new PDO($dsn, $user, $pass, $options);
     $msg = "Conexión a la base de datos exitosa.";
     $tipo = "exito";
 } catch (PDOException $e) {
     $msg = "Error al conectar con la base de datos: " . htmlspecialchars($e->getMessage());
     $tipo = "error";
+    die("Error de conexión: " . $e->getMessage());
     // Si quieres detener la ejecución si hay error, descomenta la siguiente línea:
     // exit;
 }
