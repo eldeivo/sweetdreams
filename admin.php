@@ -4,7 +4,7 @@ require 'conexion.php';
 
 // Verificar que sea admin
 if (!isset($_SESSION['id_cliente']) || $_SESSION['id_cliente'] != 1) {
-    header('Location: index.php');
+    header('Location: menuprincipal.php');
     exit;
 }
 

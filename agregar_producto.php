@@ -3,7 +3,7 @@ session_start();
 require 'conexion.php';
 
 if (!isset($_SESSION['id_cliente']) || $_SESSION['id_cliente'] != 1) {
-    header('Location: index.php');
+    header('Location: menuprincipal.php');
     exit;
 }
 
@@ -119,27 +119,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </style>
 </head>
 <body>
-
-<div class="contenedor-principal">
+ontenedor-principal">
   <h1>Agregar Producto</h1>
-
   <?php if ($error): ?>
     <div class="error"><?= htmlspecialchars($error) ?></div>
   <?php endif; ?>
-
   <?php if ($mensaje): ?>
     <div class="mensaje"><?= htmlspecialchars($mensaje) ?></div>
   <?php endif; ?>
-
   <form method="POST" action="">
     <input type="text" name="nombre" placeholder="Nombre del producto" required>
     <input type="number" name="precio" placeholder="Precio" min="0" step="0.01" required>
     <input type="number" name="stock" placeholder="Stock inicial" min="0" step="1" required>
     <button type="submit">Agregar</button>
   </form>
-
   <a href="admin.php">&laquo; Volver al Panel</a>
 </div>
-
 </body>
 </html>
