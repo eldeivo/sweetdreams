@@ -1,7 +1,9 @@
 <?php
 session_start();
 require 'conexion.php';
+require 'funciones.php';
 
+$poco_stock = verPocoStock($pdo);
 // Verificar que sea admin
 if (!isset($_SESSION['id_cliente']) || $_SESSION['id_cliente'] != 1) {
     header('Location: menuprincipal.php');
@@ -96,7 +98,7 @@ $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <body>
 
 <div class="contenedor-principal">
-    <h1>Administracion de inventario</h1>
+    <h1>Administración de Inventario</h1>
 
     <div class="agregar">
         <a href="agregar_producto.php" class="boton">+ Agregar Producto</a>
@@ -128,10 +130,44 @@ $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </tbody>
     </table>
 
+    <!-- 🔻 Sección de VISTA DE POCO STOCK -->
+    <h2 style="margin-top: 60px;"> Productos con Poco Stock</h2>
+
+    <?php
+    require_once("funciones.php");
+    $poco_stock = verPocoStock($pdo); // Asegúrate de tener esta función en funciones.php
+    ?>
+
+    <?php if (count($poco_stock) > 0): ?>
+        <table style="margin-top: 20px;">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Stock</th>
+                    <th>Precio</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($poco_stock as $producto): ?>
+                    <tr style="background-color: #fff0f0;">
+                        <td><?= htmlspecialchars($producto['id_producto']) ?></td>
+                        <td><?= htmlspecialchars($producto['nombre']) ?></td>
+                        <td><?= htmlspecialchars($producto['stock']) ?></td>
+                        <td>$<?= htmlspecialchars($producto['precio'], 2) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    <?php else: ?>
+        <p style="margin-top: 20px;">✨ Todos los productos tienen suficiente stock.</p>
+    <?php endif; ?>
+
     <div class="logout">
         <a href="logout.php" class="boton">Cerrar Sesión</a>
     </div>
 </div>
 
 </body>
+
 </html>
