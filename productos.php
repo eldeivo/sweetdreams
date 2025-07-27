@@ -92,7 +92,7 @@ $cliente = $stmt->fetch();
                         <input type="hidden" name="id_producto" value="<?= $p['id_producto'] ?>">
                         <input type="hidden" name="nombre" value="<?= htmlspecialchars($p['nombre']) ?>">
                         <input type="hidden" name="precio" value="<?= $p['precio'] ?>">
-                        <input type="number" name="cantidad" min="1" max="<?= $p['stock'] ?>" value="1" required>
+                        <input type="number" name="cantidad" min="0" max="<?= $p['stock'] ?>" value="0" required>
                 </td>
                 <td>
                         <button type="submit" name="agregar">Agregar 🛒</button>
@@ -102,6 +102,5 @@ $cliente = $stmt->fetch();
         <?php endforeach; ?>
     </tbody>
 </table>
-
 </body>
 </html>
