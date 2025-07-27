@@ -96,8 +96,10 @@ $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <body>
 
 <div class="contenedor-principal">
-    <h1>Administracion de inventario</h1>
-
+    <h1>Administracion de inventario</h1>    
+    <div class="agregar">
+        <a href="cerrarsesion.php" class="boton">Cerrar Sesión</a>
+    </div>
     <div class="agregar">
         <a href="agregar_producto.php" class="boton">+ Agregar Producto</a>
     </div>
@@ -128,9 +130,6 @@ $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </tbody>
     </table>
 
-    <div class="logout">
-        <a href="logout.php" class="boton">Cerrar Sesión</a>
-    </div>
 </div>
 
 </body>

@@ -95,7 +95,6 @@ body::before {
 .linea5 { animation: moverLinea5 18s ease-in-out infinite; }
 .linea6 { animation: moverLinea6 20s ease-in-out infinite; }
 
-/* === CONTENEDOR PRINCIPAL === */
 .contenedor {
     background: #fff;
     border-radius: 25px;
