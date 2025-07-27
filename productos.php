@@ -21,8 +21,9 @@ $mensaje = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_producto = intval($_POST['id_producto']);
     $cantidad = intval($_POST['cantidad']);
+     echo "Cantidad recibida: " . $cantidad;
 
-    // Validar cantidad
+       // Validar cantidad
     if ($cantidad <= 0) {
         $error = "Cantidad inválida.";
     } else {
