@@ -3,7 +3,7 @@ session_start();
 require 'conexion.php';
 
 if (!isset($_SESSION['id_cliente']) || $_SESSION['id_cliente'] != 1) {
-    header('Location: index.php');
+    header('Location: menuprincipal.php');
     exit;
 }
 
@@ -12,37 +12,56 @@ if (!isset($_GET['id'])) {
     exit;
 }
 
-$id_producto = intval($_GET['id']);
-$error = '';
-$mensaje = '';
+$id_producto = $_GET["id"] ?? null;
 
-// Obtener producto
-$stmt = $conn->prepare("SELECT * FROM productos WHERE id_producto = ?");
-$stmt->execute([$id_producto]);
-$producto = $stmt->fetch();
-
-if (!$producto) {
-    header('Location: admin.php');
+if (!$id_producto) {
+    echo "ID de producto no válido.";
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nombre = trim($_POST['nombre']);
-    $precio = floatval($_POST['precio']);
-    $stock = intval($_POST['stock']);
+// Variables para mensajes
+$mensaje = "";
+$error = "";
 
-    if ($nombre == '' || $precio <= 0 || $stock < 0) {
-        $error = "Por favor, completa correctamente todos los campos.";
-    } else {
-        $stmt = $conn->prepare("UPDATE productos SET nombre = ?, precio = ?, stock = ? WHERE id_producto = ?");
-        $stmt->execute([$nombre, $precio, $stock, $id_producto]);
-        $mensaje = "Producto actualizado con éxito.";
+// Actualizar producto si se envió el formulario
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $nombre = trim($_POST["nombre"]);
+    $precio = floatval($_POST["precio"]);
+    $stock = intval($_POST["stock"]);
 
-        // Refrescar datos
-        $stmt = $conn->prepare("SELECT * FROM productos WHERE id_producto = ?");
-        $stmt->execute([$id_producto]);
-        $producto = $stmt->fetch();
+    try {
+        $stmt = $conn->prepare("CALL editar_producto(?, ?, ?, ?)");
+        $stmt->execute([$id_producto, $nombre, $precio, $stock]);
+
+        // Recorrer los posibles resultados
+        do {
+            if ($stmt->columnCount()) {
+                $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($resultado) {
+                    if (isset($resultado['mensaje'])) {
+                        $mensaje = $resultado['mensaje'];
+
+                        // Refrescar datos del producto
+                        $stmt2 = $conn->prepare("SELECT * FROM productos WHERE id_producto = ?");
+                        $stmt2->execute([$id_producto]);
+                        $producto = $stmt2->fetch();
+
+                    } elseif (isset($resultado['error'])) {
+                        $error = $resultado['error'];
+                    }
+                }
+            }
+        } while ($stmt->nextRowset());
+
+    } catch(PDOException $e) {
+        $error = "Error: " . $e->getMessage();
     }
+
+} else {
+    // Cargar los datos del producto para mostrar en formulario
+    $stmt = $conn->prepare("SELECT * FROM productos WHERE id_producto = ?");
+    $stmt->execute([$id_producto]);
+    $producto = $stmt->fetch();
 }
 ?>
 
@@ -53,7 +72,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Editar Producto</title>
 <style>
-  /* Igual estilo que agregar_producto.php */
   * {
       box-sizing: border-box;
       margin: 0;
@@ -139,28 +157,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 </style>
 </head>
+
 <body>
+    <div class="contenedor-principal">
+    <h1>Editar producto</h1>
 
-<div class="contenedor-principal">
-  <h1>Editar Producto</h1>
+    <?php if (!empty($mensaje)): ?>
+        <p class="mensaje"><?php echo htmlspecialchars($mensaje); ?></p>
+    <?php elseif (!empty($error)): ?>
+        <p class="error"><?php echo htmlspecialchars($error); ?></p>
+    <?php endif; ?>
 
-  <?php if ($error): ?>
-    <div class="error"><?= htmlspecialchars($error) ?></div>
-  <?php endif; ?>
-
-  <?php if ($mensaje): ?>
-    <div class="mensaje"><?= htmlspecialchars($mensaje) ?></div>
-  <?php endif; ?>
-
-  <form method="POST" action="">
-    <input type="text" name="nombre" value="<?= htmlspecialchars($producto['nombre']) ?>" placeholder="Nombre del producto" required>
-    <input type="number" name="precio" value="<?= htmlspecialchars($producto['precio']) ?>" placeholder="Precio" min="0" step="0.01" required>
-    <input type="number" name="stock" value="<?= htmlspecialchars($producto['stock']) ?>" placeholder="Stock" min="0" step="1" required>
-    <button type="submit">Actualizar</button>
-  </form>
-
-  <a href="admin.php">&laquo; Volver al Panel</a>
-</div>
-
+    <?php if (!empty($producto)): ?>
+        <form method="post">
+            <label>Nombre:
+                <input type="text" name="nombre" value="<?php echo htmlspecialchars($producto['nombre']); ?>" >
+            </label>
+            <label>Precio:
+                <input type="number" step=".5" name="precio" value="<?php echo $producto['precio']; ?>" >
+            </label>
+            <label>Stock:
+                <input type="number" name="stock" value="<?php echo $producto['stock']; ?>" >
+            </label>
+            <button type="submit">Guardar cambios</button>
+        </form>
+    <?php elseif (empty($mensaje) && empty($error)): ?>
+        <p class="error">Producto no encontrado.</p>
+    <?php endif; ?>
+    <p><a href="admin.php">← Volver</a></p>
+    </div>
 </body>
 </html>
