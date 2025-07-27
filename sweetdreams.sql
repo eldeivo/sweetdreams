@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: localhost
--- Tiempo de generación: 21-07-2025 a las 21:37:20
+-- Tiempo de generación: 27-07-2025 a las 02:04:35
 -- Versión del servidor: 8.0.17
 -- Versión de PHP: 7.3.10
 
@@ -21,6 +21,38 @@ SET time_zone = "+00:00";
 --
 -- Base de datos: `sweetdreams`
 --
+
+DELIMITER $$
+--
+-- Procedimientos
+--
+CREATE DEFINER=`root`@`localhost` PROCEDURE `editar_producto` (IN `p_id` INT, IN `p_nombre` VARCHAR(50), IN `p_precio` DECIMAL(10,2), IN `p_stock` INT(11))  BEGIN
+    DECLARE existencia INT;
+    
+    SELECT COUNT(*) INTO existencia
+    FROM productos
+    WHERE id_producto = p_id;
+
+    IF existencia = 0 THEN
+        SELECT 'El producto no existe' AS error;
+    ELSEIF p_nombre = '' THEN
+        SELECT 'El nombre no puede estar vacío' AS error;
+    ELSEIF p_precio <= 0 THEN
+        SELECT 'El precio debe ser mayor que cero' AS error;
+    ELSEIF p_stock < 0 THEN
+        SELECT 'No puedes quitar stock al actualizar' AS error;
+    ELSE
+        UPDATE productos
+        SET nombre = p_nombre,
+            precio = p_precio,
+            stock = stock + p_stock
+        WHERE id_producto = p_id;
+
+        SELECT 'Producto actualizado con éxito' AS mensaje;
+    END IF;
+END$$
+
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -41,7 +73,10 @@ CREATE TABLE `clientes` (
 --
 
 INSERT INTO `clientes` (`id_cliente`, `nombre`, `correo`, `contraseña`, `saldo`) VALUES
-(1, 'admin', 'admin@gmail.com', 'soyeladmin', '0.00');
+(1, 'admin', 'admin@gmail.com', 'soyeladmin', '0.00'),
+(2, 'David', 'deivo@gmail.com', 'maincra', '0.00'),
+(3, 'Abrila', 'abi@gmail.com', 'a', '25.00'),
+(4, 'jenis', 'Jenis@gmail.com', 'soylajenis', '0.00');
 
 -- --------------------------------------------------------
 
@@ -55,6 +90,43 @@ CREATE TABLE `productos` (
   `precio` decimal(10,2) NOT NULL,
   `stock` int(11) NOT NULL DEFAULT '0'
 ) ;
+
+--
+-- Volcado de datos para la tabla `productos`
+--
+
+INSERT INTO `productos` (`id_producto`, `nombre`, `precio`, `stock`) VALUES
+(1, 'CHURRITOS NATURALES', '10.00', 25),
+(3, 'CHURRITOS FUEGO', '10.00', 50),
+(4, 'CHURRITOS HABANERO', '10.00', 50),
+(5, 'PAPAS NATURALES', '12.00', 50),
+(6, 'PAPAS DE QUESO', '12.00', 50),
+(7, 'PAPAS ADOBADAS', '12.00', 50),
+(8, 'PALOMITAS', '10.00', 50),
+(9, 'PALOMITAS QUESO', '10.00', 50),
+(10, 'DORITOS', '13.00', 50),
+(11, 'TOSTITOS', '13.00', 50),
+(12, 'CHEETO DE QUESO', '13.00', 50),
+(13, 'HABAS', '8.00', 50),
+(14, 'ANILLO', '8.00', 50),
+(15, 'LAGRIMA', '8.00', 50),
+(16, 'PANDITAS', '6.00', 50),
+(17, 'LOMBRIZ', '6.00', 50),
+(18, 'LOMBRIZ ACIDITA', '6.00', 50),
+(19, 'FRUTITAS', '6.00', 50),
+(20, 'MANGUITOS', '6.00', 50),
+(21, 'ARITOS', '6.00', 50),
+(22, 'PINGUINOS', '15.00', 50),
+(23, 'DIENTES', '6.00', 50),
+(24, 'CERECITAS', '6.00', 50),
+(25, 'JELLY BEANS', '6.00', 50),
+(26, 'LUNETAS', '6.00', 50),
+(27, 'PASITAS', '6.00', 50),
+(28, 'SUSPIROS', '6.00', 50),
+(29, 'PEPINO', '10.00', 50),
+(30, 'JÍCAMA', '10.00', 50),
+(31, 'FRUTA DE TEMPORADA', '10.00', 50),
+(32, 'ZANAHORIA', '10.00', 50);
 
 -- --------------------------------------------------------
 
