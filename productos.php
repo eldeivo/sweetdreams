@@ -2,6 +2,7 @@
 session_start();
 require 'conexion.php';
 
+
 if (!isset($_SESSION['id_cliente']) || $_SESSION['id_cliente'] == 1) {
     header('Location: iniciarsesion.php');
     exit;
