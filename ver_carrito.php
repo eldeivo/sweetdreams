@@ -1,58 +1,82 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 session_start();
+require 'conexion.php';
 
-// Eliminar producto del carrito si se solicita
-if (isset($_POST['eliminar'])) {
-    $id_eliminar = $_POST['id_producto'] ?? null;
-    if ($id_eliminar !== null && isset($_SESSION['carrito'])) {
-        foreach ($_SESSION['carrito'] as $key => $item) {
-            if ($item['id'] == $id_eliminar) {
-                unset($_SESSION['carrito'][$key]);
-                // Reindexar array para evitar huecos
-                $_SESSION['carrito'] = array_values($_SESSION['carrito']);
-                break;
-            }
-        }
-    }
-    header("Location: ver_carrito.php");
+if (!isset($_SESSION['id_cliente']) || $_SESSION['id_cliente'] == 1) {
+    header('Location: iniciarsesion.php');
     exit;
 }
 
-// Agregar producto al carrito (no es obligatorio si solo agregas desde catálogo)
-if (isset($_POST['agregar'])) {
-    $id_producto = $_POST['id_producto'] ?? null;
-    $nombre = $_POST['nombre'] ?? '';
-    $precio = $_POST['precio'] ?? 0;
-    $cantidad = (int)($_POST['cantidad'] ?? 0);
+$id_cliente = $_SESSION['id_cliente'];
+$carrito = $_SESSION['carrito'] ?? [];
 
-    if (!$id_producto || $cantidad < 1) {
-        // Aquí podrías agregar un mensaje de error si quieres
-    } else {
-        $producto = [
-            'id' => $id_producto,
-            'nombre' => $nombre,
-            'precio' => $precio,
-            'cantidad' => $cantidad
-        ];
-        if (!isset($_SESSION['carrito'])) {
-            $_SESSION['carrito'] = [];
-        }
+// Procesar acciones del carrito
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $id_producto = intval($_POST['id_producto']);
 
-        $repetido = false;
-        foreach ($_SESSION['carrito'] as &$item) {
-            if ($item['id'] == $producto['id']) {
-                $item['cantidad'] += $producto['cantidad'];
-                $repetido = true;
-                break;
-            }
-        }
-        if (!$repetido) {
-            $_SESSION['carrito'][] = $producto;
+    if (isset($_POST['eliminar'])) {
+        unset($_SESSION['carrito'][$id_producto]);
+        $_SESSION['mensaje'] = "Producto eliminado del carrito 🗑️";
+        header("Location: ver_carrito.php");
+        exit;
+    }
+
+    if (isset($_POST['comprar']) && isset($carrito[$id_producto])) {
+        $item = $carrito[$id_producto];
+        $cantidad = intval($item['cantidad']);
+
+        try {
+            $conn->beginTransaction();
+
+            $stmt = $conn->prepare("SELECT precio, stock FROM productos WHERE id_producto = ?");
+            $stmt->execute([$id_producto]);
+            $producto = $stmt->fetch();
+
+            if (!$producto) throw new Exception("Producto no encontrado.");
+
+            $stock = intval($producto['stock']);
+            $precio_unitario = floatval($producto['precio']);
+            $total = $cantidad * $precio_unitario;
+
+            if ($stock < $cantidad) throw new Exception("No hay suficiente stock.");
+            
+            $stmt = $conn->prepare("SELECT saldo FROM clientes WHERE id_cliente = ?");
+            $stmt->execute([$id_cliente]);
+            $saldo = floatval($stmt->fetchColumn());
+
+            if ($saldo < $total) throw new Exception("Saldo insuficiente.");
+
+            $stmt = $conn->prepare("INSERT INTO ventas (id_cliente, id_producto, cantidad, precio_unitario, total)
+                                    VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([$id_cliente, $id_producto, $cantidad, $precio_unitario, $total]);
+
+            $stmt = $conn->prepare("UPDATE productos SET stock = stock - ? WHERE id_producto = ?");
+            $stmt->execute([$cantidad, $id_producto]);
+
+            $stmt = $conn->prepare("UPDATE clientes SET saldo = saldo - ? WHERE id_cliente = ?");
+            $stmt->execute([$total, $id_cliente]);
+
+            $conn->commit();
+
+            unset($_SESSION['carrito'][$id_producto]);
+            $_SESSION['mensaje'] = "✅ Producto comprado con éxito 🎉";
+            header("Location: ver_carrito.php");
+            exit;
+        } catch (Exception $e) {
+            $conn->rollBack();
+            $_SESSION['mensaje'] = "❌ Error: " . $e->getMessage();
+            header("Location: ver_carrito.php");
+            exit;
         }
     }
-    header("Location: ver_carrito.php");
-    exit;
 }
+
+// Obtener saldo actual del cliente
+$stmt = $conn->prepare("SELECT saldo FROM clientes WHERE id_cliente = ?");
+$stmt->execute([$id_cliente]);
+$saldo_actual = $stmt->fetchColumn();
 ?>
 
 <!DOCTYPE html>
@@ -77,7 +101,7 @@ if (isset($_POST['agregar'])) {
         table {
             margin: 0 auto;
             border-collapse: collapse;
-            width: 80%;
+            width: 90%;
             background-color: #fff;
             box-shadow: 0 0 10px rgba(219, 112, 147, 0.2);
             border-radius: 12px;
@@ -100,7 +124,7 @@ if (isset($_POST['agregar'])) {
             background: linear-gradient(90deg, #ff8fb1, #ffa4d3);
             color: white;
             padding: 12px 25px;
-            margin: 20px 10px;
+            margin: 10px 5px;
             border: none;
             border-radius: 25px;
             text-decoration: none;
@@ -112,62 +136,101 @@ if (isset($_POST['agregar'])) {
             transform: scale(1.05);
             background: linear-gradient(90deg, #ff6f91, #ff9ecb);
         }
-        form.inline {
-            display: inline;
-        }
         .boton-eliminar {
             background: #e55353;
+            padding: 10px 20px;
+            border-radius: 25px;
+            color: white;
+            font-weight: bold;
+            border: none;
+        }
+        .mensaje {
+            margin: 20px auto;
+            padding: 15px 30px;
+            background-color: #e0f7e9;
+            border: 1px solid #a5d6a7;
+            border-radius: 10px;
+            color: #2e7d32;
+            font-weight: bold;
+            width: fit-content;
+            text-align: center;
+        }
+        .nav-links {
+            margin-bottom: 25px;
+        }
+        .nav-links a {
+            margin: 0 10px;
+            text-decoration: none;
+            font-weight: bold;
+            color: #d14c8f;
+        }
+        .nav-links a:hover {
+            color: #a3195c;
+        }
+        .saldo-info {
+            text-align: right;
+            margin: 10px auto 20px;
+            width: 90%;
+            color: #22396bff;
+            font-size: 1.1em;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <h1>Tu carrito 🛒</h1>
 
-    <?php if (!empty($_SESSION['carrito'])): ?>
-        <table>
-            <thead>
+<div class="nav-links">
+    <a href="productos.php" >Seguir comprando</a>
+    <a href="recargar.php" >Recargar saldo</a>
+    <a href="compras.php" >Historial</a>
+    <a href="cerrarsesion.php" >Cerrar sesión</a>
+</div>
+
+<h1>Tu Carrito 🛒</h1>
+
+<?php if (!empty($_SESSION['mensaje'])): ?>
+    <div class="mensaje"><?= htmlspecialchars($_SESSION['mensaje']) ?></div>
+    <?php unset($_SESSION['mensaje']); ?>
+<?php endif; ?>
+
+<div class="saldo-info">Saldo disponible: <strong>$<?= number_format($saldo_actual, 2) ?></strong></div>
+
+<?php if (empty($carrito)): ?>
+    <p>Tu carrito está vacío 😢</p>
+<?php else: ?>
+    <table>
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Subtotal ($)</th>
+                <th>Comprar</th>
+                <th>Eliminar</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($carrito as $id => $item): ?>
                 <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Precio unitario</th>
-                    <th>Cantidad</th>
-                    <th>Total</th>
-                    <th>Comprar</th>
-                    <th>Eliminar</th>
-                </tr>
-            </thead>
-            <tbody>
-            <?php foreach ($_SESSION['carrito'] as $item): ?>
-                <tr>
-                    <td><?= htmlspecialchars($item['id']) ?></td>
                     <td><?= htmlspecialchars($item['nombre']) ?></td>
-                    <td>$<?= number_format($item['precio'], 2) ?></td>
-                    <td><?= (int)$item['cantidad'] ?></td>
-                    <td>$<?= number_format($item['precio'] * $item['cantidad'], 2) ?></td>
-
+                    <td><?= intval($item['cantidad']) ?></td>
+                    <td>$<?= number_format($item['cantidad'] * $item['precio'], 2) ?></td>
                     <td>
-                        <form method="POST" action="procesar_compra.php">
-    <input type="hidden" name="id_producto" value="<?= $item['id'] ?>">
-    <input type="hidden" name="cantidad" value="<?= $item['cantidad'] ?>">
-    <button type="submit" name="comprar">Comprar este producto</button>
-</form>
-
+                        <form method="POST" style="display:inline;">
+                            <input type="hidden" name="id_producto" value="<?= $id ?>">
+                            <button type="submit" name="comprar" class="boton">Comprar</button>
+                        </form>
                     </td>
-
                     <td>
-                        <form method="POST" action="ver_carrito.php" class="inline">
-                            <input type="hidden" name="id_producto" value="<?= htmlspecialchars($item['id']) ?>">
-                            <button type="submit" name="eliminar" class="boton boton-eliminar">Eliminar</button>
+                        <form method="POST" style="display:inline;">
+                            <input type="hidden" name="id_producto" value="<?= $id ?>">
+                            <button type="submit" name="eliminar" class="boton-eliminar">Eliminar</button>
                         </form>
                     </td>
                 </tr>
             <?php endforeach; ?>
-            </tbody>
-        </table>
-    <?php else: ?>
-        <p>Tu carrito está vacío 😢</p>
-    <?php endif; ?>
+        </tbody>
+    </table>
+<?php endif; ?>
 
-    <a href="productos.php" class="boton">Seguir comprando</a>
 </body>
 </html>

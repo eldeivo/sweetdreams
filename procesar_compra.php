@@ -1,96 +1,106 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
 session_start();
-require_once 'conexion.php';
+require 'conexion.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if (!isset($_SESSION['id_cliente']) || $_SESSION['id_cliente'] == 1) {
+    header('Location: iniciarsesion.php');
+    exit;
+}
 
-    // Verifica si viene del carrito
-    if (isset($_POST['id_producto']) && isset($_POST['cantidad'])) {
-        $id_producto = (int)$_POST['id_producto'];
-        $cantidad = (int)$_POST['cantidad'];
-    }
-    // Si no, verifica si viene del formulario simple
-    else if (isset($_POST['producto_id']) && isset($_POST['producto_cantidad'])) {
-        $id_producto = (int)$_POST['producto_id'];
-        $cantidad = (int)$_POST['producto_cantidad'];
-    } else {
-        echo "Datos de producto inválidos.";
-        exit;
-    }
+$id_cliente = $_SESSION['id_cliente'];
+$carrito = $_SESSION['carrito'] ?? [];
 
-    // Validaciones
-    if ($id_producto <= 0 || $cantidad <= 0) {
-        echo "Datos inválidos.";
-        exit;
-    }
+if (empty($carrito)) {
+    header('Location: productos.php');
+    exit;
+}
 
-    if (!isset($_SESSION['id_cliente'])) {
-        echo "Usuario no autenticado.";
-        exit;
-    }
+try {
+    $conn->beginTransaction();
 
-    $id_cliente = $_SESSION['id_cliente'];
+    // Obtener saldo actual
+    $stmt = $conn->prepare("SELECT saldo FROM clientes WHERE id_cliente = ?");
+    $stmt->execute([$id_cliente]);
+    $cliente = $stmt->fetch();
+    $saldo = floatval($cliente['saldo']);
 
-    try {
-        $pdo->beginTransaction();
+    $total_compra = 0.0;
 
-        // Verificar saldo actual
-        $stmtSaldo = $pdo->prepare("SELECT saldo FROM clientes WHERE id_cliente = ?");
-        $stmtSaldo->execute([$id_cliente]);
-        $saldo = $stmtSaldo->fetchColumn();
+    // Validar stock y calcular total
+    foreach ($carrito as $id_producto => $item) {
+        $cantidad = intval($item['cantidad']);
 
-        if ($saldo === false) {
-            throw new Exception("Cliente no encontrado.");
-        }
-
-        // Obtener precio y stock del producto
-        $stmtProducto = $pdo->prepare("SELECT precio, stock FROM productos WHERE id_producto = ?");
-        $stmtProducto->execute([$id_producto]);
-        $producto = $stmtProducto->fetch(PDO::FETCH_ASSOC);
+        $stmt = $conn->prepare("SELECT precio, stock FROM productos WHERE id_producto = ?");
+        $stmt->execute([$id_producto]);
+        $producto = $stmt->fetch();
 
         if (!$producto) {
-            throw new Exception("Producto no encontrado.");
+            throw new Exception("Producto no encontrado (ID: $id_producto)");
         }
 
-        $total = $producto['precio'] * $cantidad;
-
-        if ($producto['stock'] < $cantidad) {
-            throw new Exception("Stock insuficiente.");
+        if ($cantidad > $producto['stock']) {
+            throw new Exception("Stock insuficiente para: " . $item['nombre']);
         }
 
-        if ($saldo < $total) {
-            throw new Exception("Saldo insuficiente.");
-        }
-
-        // Llamar procedimiento almacenado
-        $stmt = $pdo->prepare("CALL registrar_venta(?, ?, ?)");
-        $stmt->execute([$id_producto, $cantidad, $id_cliente]);
-
-        // Actualizar saldo
-        $nuevoSaldo = $saldo - $total;
-        $stmtSaldo = $pdo->prepare("UPDATE clientes SET saldo = ? WHERE id_cliente = ?");
-        $stmtSaldo->execute([$nuevoSaldo, $id_cliente]);
-
-        $pdo->commit();
-
-        // Opcional: eliminar producto del carrito
-        if (isset($_SESSION['carrito'])) {
-            foreach ($_SESSION['carrito'] as $i => $item) {
-                if ($item['id'] == $id_producto) {
-                    unset($_SESSION['carrito'][$i]);
-                    break;
-                }
-            }
-        }
-
-        echo "Compra realizada con éxito.";
-
-    } catch (Exception $e) {
-        $pdo->rollBack();
-        echo "Error en la compra: " . $e->getMessage();
+        $total_compra += $producto['precio'] * $cantidad;
     }
-} else {
-    echo "Método no permitido.";
+
+    // Verificar si hay saldo suficiente
+    if ($total_compra > $saldo) {
+        throw new Exception("Saldo insuficiente. Total: $$total_compra | Saldo disponible: $$saldo");
+    }
+
+    // Procesar la venta
+    foreach ($carrito as $id_producto => $item) {
+        $cantidad = intval($item['cantidad']);
+
+        // Obtener precio actual del producto
+        $stmt = $conn->prepare("SELECT precio FROM productos WHERE id_producto = ?");
+        $stmt->execute([$id_producto]);
+        $producto = $stmt->fetch();
+        $precio_unitario = floatval($producto['precio']);
+        $total = $precio_unitario * $cantidad;
+
+        // Insertar en ventas
+        $stmt = $conn->prepare("INSERT INTO ventas (id_cliente, id_producto, cantidad, precio_unitario, total) 
+                                VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([$id_cliente, $id_producto, $cantidad, $precio_unitario, $total]);
+
+        // Actualizar stock
+        $stmt = $conn->prepare("UPDATE productos SET stock = stock - ? WHERE id_producto = ?");
+        $stmt->execute([$cantidad, $id_producto]);
+    }
+
+    // Descontar saldo del cliente
+    $stmt = $conn->prepare("UPDATE clientes SET saldo = saldo - ? WHERE id_cliente = ?");
+    $stmt->execute([$total_compra, $id_cliente]);
+
+    // Limpiar carrito
+    unset($_SESSION['carrito']);
+
+    $conn->commit();
+    $mensaje = "¡Compra realizada con éxito! Total: $" . number_format($total_compra, 2);
+} catch (Exception $e) {
+    $conn->rollBack();
+    $mensaje = "❌ Error al procesar la compra: " . $e->getMessage();
 }
+?>
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Compra procesada</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="nav-links">
+        <a href="productos.php">Volver a productos</a>
+        <a href="ver_carrito.php">Ver carrito</a>
+        <a href="compras.php">Historial</a>
+    </div>
+
+    <h1>Resultado de la compra</h1>
+    <div class="mensaje"><?= htmlspecialchars($mensaje) ?></div>
+</body>
+</html>
