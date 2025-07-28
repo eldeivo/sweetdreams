@@ -24,7 +24,7 @@ body.centrado {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(to right, #f06292, #a2e1ef);
+  background: linear-gradient(to right, #fdfdfd, #a2e1ef);
   padding: 40px 20px;
 }
 
@@ -250,7 +250,7 @@ header img.logo {
 }
 
 .login-container button {
-    background: #f06292;
+    background: linear-gradient(90deg, #ff8fb1, #ffa4d3);
     color: white;
     padding: 15px 30px;
     border: none;
@@ -286,7 +286,7 @@ header img.logo {
 /* ==== ESTILOS DE productos.php ==== */
 .productos-page {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #f06292, #a2e1ef, #bb82cb);
+    background: linear-gradient(90deg, #ffffff, #f4c4e1);
     min-height: 100vh;
     margin: 0;
     padding: 40px 20px;
@@ -364,7 +364,7 @@ header img.logo {
 }
 
 .productos-page button {
-    background: #f06292;
+    background: linear-gradient(90deg, #ff8fb1, #ffa4d3);
     border: none;
     padding: 10px 20px;
     color: white;
@@ -376,7 +376,7 @@ header img.logo {
 }
 
 .productos-page button:hover {
-    background: #d81b60;
+    background: #fad4e2;
 }
 
 .productos-page .saldo {
