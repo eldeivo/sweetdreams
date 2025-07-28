@@ -140,10 +140,11 @@ $compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </tbody>
 </table>
 
-<div class="boton-contenedor">
+  <?php endif; ?>
+
+  <div class="boton-contenedor">
   <a href="productos.php" class="boton">Seguir comprando</a>
 </div>
-  <?php endif; ?>
 </div>
 </body>
 </html>
