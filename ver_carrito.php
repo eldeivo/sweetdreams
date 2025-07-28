@@ -186,7 +186,7 @@ $saldo_actual = $stmt->fetchColumn();
     <a href="cerrarsesion.php" >Cerrar sesión</a>
 </div>
 
-<h1>Tu Carrito 🛒</h1>
+<h1>Tu Carrito</h1>
 
 <?php if (!empty($_SESSION['mensaje'])): ?>
     <div class="mensaje"><?= htmlspecialchars($_SESSION['mensaje']) ?></div>
