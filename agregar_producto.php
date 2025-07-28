@@ -15,12 +15,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $precio = floatval($_POST['precio']);
     $stock = intval($_POST['stock']);
 
+    $id_producto = 0;
+
     if ($nombre == '' || $precio <= 0 || $stock < 0) {
         $error = "Por favor, completa correctamente todos los campos.";
     } else {
-        $stmt = $conn->prepare("INSERT INTO productos (nombre, precio, stock) VALUES (?, ?, ?)");
-        $stmt->execute([$nombre, $precio, $stock]);
-        $mensaje = "Producto agregado con éxito.";
+        try {
+            $stmt = $conn->prepare("CALL admin_producto(3, ?, ?, ?, ?)");
+            $stmt->execute([$id_producto, $nombre, $precio, $stock]);
+
+            $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($resultado && isset($resultado['error'])) {
+                $error = $resultado['error'];
+            } elseif ($resultado && isset($resultado['mensaje'])) {
+                $_SESSION['mensaje'] = $resultado['mensaje'];
+                $_SESSION['mensaje_tipo'] = 'exito';
+                header('Location: admin.php'); // <-- sin #final
+                exit;
+            } else {
+                $error = "Respuesta inesperada del servidor.";
+            }
+        } catch (PDOException $e) {
+            $error = "Error en la base de datos: " . $e->getMessage();
+        }
     }
 }
 ?>
@@ -119,18 +137,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </style>
 </head>
 <body>
-ontenedor-principal">
+<div class="contenedor-principal">
   <h1>Agregar Producto</h1>
   <?php if ($error): ?>
     <div class="error"><?= htmlspecialchars($error) ?></div>
   <?php endif; ?>
-  <?php if ($mensaje): ?>
-    <div class="mensaje"><?= htmlspecialchars($mensaje) ?></div>
-  <?php endif; ?>
   <form method="POST" action="">
-    <input type="text" name="nombre" placeholder="Nombre del producto" required>
-    <input type="number" name="precio" placeholder="Precio" min="0" step="0.01" required>
-    <input type="number" name="stock" placeholder="Stock inicial" min="0" step="1" required>
+    <input type="text" name="nombre" placeholder="Nombre del producto" required value="<?= isset($_POST['nombre']) ? htmlspecialchars($_POST['nombre']) : '' ?>">
+    <input type="number" name="precio" placeholder="Precio" min="0" step="0.01" required value="<?= isset($_POST['precio']) ? htmlspecialchars($_POST['precio']) : '' ?>">
+    <input type="number" name="stock" placeholder="Stock inicial" min="0" step="1" required value="<?= isset($_POST['stock']) ? htmlspecialchars($_POST['stock']) : '' ?>">
     <button type="submit">Agregar</button>
   </form>
   <a href="admin.php">&laquo; Volver al Panel</a>

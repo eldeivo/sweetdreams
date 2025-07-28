@@ -13,20 +13,19 @@ $options = [
     PDO::ATTR_EMULATE_PREPARES   => false,
 ];
 
+$msg = null;
+$tipo = null;
+
 try {
     $pdo = new PDO($dsn, $user, $pass, $options);
     $conn = new PDO($dsn, $user, $pass, $options);
-    $msg = "Conexión a la base de datos exitosa.";
-    $tipo = "exito";
 } catch (PDOException $e) {
     $msg = "Error al conectar con la base de datos: " . htmlspecialchars($e->getMessage());
     $tipo = "error";
-    die("Error de conexión: " . $e->getMessage());
-    // Si quieres detener la ejecución si hay error, descomenta la siguiente línea:
-    // exit;
 }
 ?>
 
+<?php if ($msg !== null): ?>
 <script>
 window.addEventListener('DOMContentLoaded', () => {
     const msg = <?php echo json_encode($msg); ?>;
@@ -35,7 +34,6 @@ window.addEventListener('DOMContentLoaded', () => {
     const toast = document.createElement('div');
     toast.textContent = msg;
 
-    // Estilos inline para evitar interferencias con CSS global
     toast.style.position = 'fixed';
     toast.style.top = '20px';
     toast.style.left = '50%';
@@ -62,12 +60,12 @@ window.addEventListener('DOMContentLoaded', () => {
 
     document.body.appendChild(toast);
 
-    // Desaparece luego de 3 segundos
     setTimeout(() => {
         toast.style.opacity = '0';
         setTimeout(() => {
             toast.remove();
         }, 500);
-    }, 3000);
+    }, 1500);
 });
 </script>
+<?php endif; ?>

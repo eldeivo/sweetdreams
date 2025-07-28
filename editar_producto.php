@@ -13,57 +13,52 @@ if (!isset($_GET['id'])) {
 }
 
 $id_producto = $_GET["id"] ?? null;
-
 if (!$id_producto) {
     echo "ID de producto no válido.";
     exit;
 }
 
-// Variables para mensajes
+// Para mostrar mensajes
 $mensaje = "";
 $error = "";
 
-// Actualizar producto si se envió el formulario
+// Obtiene valores
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $nombre = trim($_POST["nombre"]);
+    $nombre = $_POST["nombre"];
     $precio = floatval($_POST["precio"]);
     $stock = intval($_POST["stock"]);
 
     try {
-        $stmt = $conn->prepare("CALL editar_producto(?, ?, ?, ?)");
-        $stmt->execute([$id_producto, $nombre, $precio, $stock]);
+        $stmt = $conn->prepare("CALL admin_producto(?, ?, ?, ?, ?)");
+        $stmt->execute([1, $id_producto, $nombre, $precio, $stock]);
 
-        // Recorrer los posibles resultados
         do {
             if ($stmt->columnCount()) {
                 $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
                 if ($resultado) {
                     if (isset($resultado['mensaje'])) {
                         $mensaje = $resultado['mensaje'];
-
-                        // Refrescar datos del producto
                         $stmt2 = $conn->prepare("SELECT * FROM productos WHERE id_producto = ?");
                         $stmt2->execute([$id_producto]);
                         $producto = $stmt2->fetch();
-
                     } elseif (isset($resultado['error'])) {
                         $error = $resultado['error'];
                     }
                 }
             }
         } while ($stmt->nextRowset());
-
     } catch(PDOException $e) {
         $error = "Error: " . $e->getMessage();
     }
 
 } else {
-    // Cargar los datos del producto para mostrar en formulario
+    // Carga los datos actuales en el form
     $stmt = $conn->prepare("SELECT * FROM productos WHERE id_producto = ?");
     $stmt->execute([$id_producto]);
     $producto = $stmt->fetch();
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="es">
@@ -176,8 +171,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <label>Precio:
                 <input type="number" step=".5" name="precio" value="<?php echo $producto['precio']; ?>" >
             </label>
-            <label>Stock:
-                <input type="number" name="stock" value="<?php echo $producto['stock']; ?>" >
+            <label>Añadir stock:
+                <input type="number" step="1" name="stock" value="0" min="0">
             </label>
             <button type="submit">Guardar cambios</button>
         </form>

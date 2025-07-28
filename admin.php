@@ -1,16 +1,12 @@
 <?php
 session_start();
 require 'conexion.php';
-require 'funciones.php';
 
-$poco_stock = verPocoStock($pdo);
-// Verificar que sea admin
 if (!isset($_SESSION['id_cliente']) || $_SESSION['id_cliente'] != 1) {
     header('Location: menuprincipal.php');
     exit;
 }
 
-// Obtener productos
 $stmt = $conn->query("SELECT * FROM productos");
 $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
@@ -98,12 +94,10 @@ $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <body>
 
 <div class="contenedor-principal">
-    
     <h1>Administracion de inventario</h1>    
     <div class="agregar">
         <a href="cerrarsesion.php" class="boton">Cerrar Sesión</a>
     </div>
-
     <div class="agregar">
         <a href="agregar_producto.php" class="boton">+ Agregar Producto</a>
     </div>
@@ -133,47 +127,55 @@ $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <?php endforeach; ?>
         </tbody>
     </table>
-
-
-    <!-- 🔻 Sección de VISTA DE POCO STOCK -->
-    <h2 style="margin-top: 60px;"> Productos con Poco Stock</h2>
-
-    <?php
-    require_once("funciones.php");
-    $poco_stock = verPocoStock($pdo); // Asegúrate de tener esta función en funciones.php
-    ?>
-
-    <?php if (count($poco_stock) > 0): ?>
-        <table style="margin-top: 20px;">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Stock</th>
-                    <th>Precio</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($poco_stock as $producto): ?>
-                    <tr style="background-color: #fff0f0;">
-                        <td><?= htmlspecialchars($producto['id_producto']) ?></td>
-                        <td><?= htmlspecialchars($producto['nombre']) ?></td>
-                        <td><?= htmlspecialchars($producto['stock']) ?></td>
-                        <td>$<?= htmlspecialchars($producto['precio'], 2) ?></td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-    <?php else: ?>
-        <p style="margin-top: 20px;">✨ Todos los productos tienen suficiente stock.</p>
-    <?php endif; ?>
-
-    <div class="logout">
-        <a href="logout.php" class="boton">Cerrar Sesión</a>
-    </div>
-
 </div>
 
-</body>
+<?php if (isset($_SESSION['mensaje'], $_SESSION['mensaje_tipo'])): ?>
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+    const msg = <?php echo json_encode($_SESSION['mensaje']); ?>;
+    const tipo = <?php echo json_encode($_SESSION['mensaje_tipo']); ?>;
 
+    const toast = document.createElement('div');
+    toast.textContent = msg;
+
+    toast.style.position = 'fixed';
+    toast.style.top = '20px';
+    toast.style.left = '50%';
+    toast.style.transform = 'translateX(-50%)';
+    toast.style.padding = '15px 25px';
+    toast.style.borderRadius = '12px';
+    toast.style.fontSize = '1rem';
+    toast.style.fontWeight = '600';
+    toast.style.zIndex = '9999';
+    toast.style.boxShadow = '0 8px 20px rgba(0,0,0,0.15)';
+    toast.style.cursor = 'default';
+    toast.style.transition = 'opacity 0.5s ease';
+    toast.style.opacity = '1';
+
+    if (tipo === 'exito') {
+        toast.style.backgroundColor = '#d4edda';
+        toast.style.color = '#155724';
+        toast.style.border = '1px solid #c3e6cb';
+    } else {
+        toast.style.backgroundColor = '#f8d7da';
+        toast.style.color = '#721c24';
+        toast.style.border = '1px solid #f5c6cb';
+    }
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => {
+            toast.remove();
+        }, 500);
+    }, 1500);
+});
+</script>
+<?php 
+unset($_SESSION['mensaje'], $_SESSION['mensaje_tipo']);
+endif;
+?>
+
+</body>
 </html>
