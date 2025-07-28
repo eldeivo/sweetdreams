@@ -1,6 +1,7 @@
 <?php
 session_start();
 
+
 if (isset($_POST['agregar'])) {
     $producto = [
         'id' => $_POST['id_producto'],
@@ -32,4 +33,5 @@ if (isset($_POST['agregar'])) {
     header("Location: ver_carrito.php");
     exit;
 }
+
 ?>
