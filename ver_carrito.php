@@ -1,33 +1,55 @@
 <?php
 session_start();
 
-// Inicializar carrito si no existe
-if (!isset($_SESSION['carrito'])) {
-    $_SESSION['carrito'] = [];
-}
-
-// PROCESAR PRODUCTO AGREGADO AL CARRITO
-if (isset($_POST['agregar'])) {
-    $producto = [
-        'id' => $_POST['id_producto'],
-        'nombre' => $_POST['nombre'],
-        'precio' => floatval($_POST['precio']),
-        'cantidad' => intval($_POST['cantidad'])
-    ];
-
-    $repetido = false;
-    foreach ($_SESSION['carrito'] as &$item) {
-        if ($item['id'] == $producto['id']) {
-            $item['cantidad'] += $producto['cantidad'];
-            $repetido = true;
-            break;
+// Eliminar producto del carrito si se solicita
+if (isset($_POST['eliminar'])) {
+    $id_eliminar = $_POST['id_producto'] ?? null;
+    if ($id_eliminar !== null && isset($_SESSION['carrito'])) {
+        foreach ($_SESSION['carrito'] as $key => $item) {
+            if ($item['id'] == $id_eliminar) {
+                unset($_SESSION['carrito'][$key]);
+                // Reindexar array para evitar huecos
+                $_SESSION['carrito'] = array_values($_SESSION['carrito']);
+                break;
+            }
         }
     }
+    header("Location: ver_carrito.php");
+    exit;
+}
 
-    if (!$repetido) {
-        $_SESSION['carrito'][] = $producto;
+// Agregar producto al carrito (no es obligatorio si solo agregas desde catálogo)
+if (isset($_POST['agregar'])) {
+    $id_producto = $_POST['id_producto'] ?? null;
+    $nombre = $_POST['nombre'] ?? '';
+    $precio = $_POST['precio'] ?? 0;
+    $cantidad = (int)($_POST['cantidad'] ?? 0);
+
+    if (!$id_producto || $cantidad < 1) {
+        // Aquí podrías agregar un mensaje de error si quieres
+    } else {
+        $producto = [
+            'id' => $id_producto,
+            'nombre' => $nombre,
+            'precio' => $precio,
+            'cantidad' => $cantidad
+        ];
+        if (!isset($_SESSION['carrito'])) {
+            $_SESSION['carrito'] = [];
+        }
+
+        $repetido = false;
+        foreach ($_SESSION['carrito'] as &$item) {
+            if ($item['id'] == $producto['id']) {
+                $item['cantidad'] += $producto['cantidad'];
+                $repetido = true;
+                break;
+            }
+        }
+        if (!$repetido) {
+            $_SESSION['carrito'][] = $producto;
+        }
     }
-
     header("Location: ver_carrito.php");
     exit;
 }
@@ -37,7 +59,7 @@ if (isset($_POST['agregar'])) {
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Mi Carrito - Sweet Dreams</title>
+    <title>Tu Carrito - Sweet Dreams</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -90,16 +112,11 @@ if (isset($_POST['agregar'])) {
             transform: scale(1.05);
             background: linear-gradient(90deg, #ff6f91, #ff9ecb);
         }
-        p {
-            font-size: 1.2em;
-            color: #777;
-            margin-top: 40px;
+        form.inline {
+            display: inline;
         }
-        .total {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #c2185b;
-            margin-top: 30px;
+        .boton-eliminar {
+            background: #e55353;
         }
     </style>
 </head>
@@ -108,33 +125,45 @@ if (isset($_POST['agregar'])) {
 
     <?php if (!empty($_SESSION['carrito'])): ?>
         <table>
-            <tr>
-                <th>Nombre</th>
-                <th>Precio</th>
-                <th>Cantidad</th>
-                <th>Subtotal</th>
-            </tr>
-            <?php
-            $total = 0;
-            foreach ($_SESSION['carrito'] as $item):
-                $subtotal = $item['precio'] * $item['cantidad'];
-                $total += $subtotal;
-            ?>
+            <thead>
                 <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Precio unitario</th>
+                    <th>Cantidad</th>
+                    <th>Total</th>
+                    <th>Comprar</th>
+                    <th>Eliminar</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($_SESSION['carrito'] as $item): ?>
+                <tr>
+                    <td><?= htmlspecialchars($item['id']) ?></td>
                     <td><?= htmlspecialchars($item['nombre']) ?></td>
                     <td>$<?= number_format($item['precio'], 2) ?></td>
-                    <td><?= $item['cantidad'] ?></td>
-                    <td>$<?= number_format($subtotal, 2) ?></td>
+                    <td><?= (int)$item['cantidad'] ?></td>
+                    <td>$<?= number_format($item['precio'] * $item['cantidad'], 2) ?></td>
+
+                    <td>
+                        <form method="POST" action="procesar_compra.php">
+    <input type="hidden" name="id_producto" value="<?= $item['id'] ?>">
+    <input type="hidden" name="cantidad" value="<?= $item['cantidad'] ?>">
+    <button type="submit" name="comprar">Comprar este producto</button>
+</form>
+
+                    </td>
+
+                    <td>
+                        <form method="POST" action="ver_carrito.php" class="inline">
+                            <input type="hidden" name="id_producto" value="<?= htmlspecialchars($item['id']) ?>">
+                            <button type="submit" name="eliminar" class="boton boton-eliminar">Eliminar</button>
+                        </form>
+                    </td>
                 </tr>
             <?php endforeach; ?>
+            </tbody>
         </table>
-
-        <div class="total">Total a pagar: $<?= number_format($total, 2) ?></div>
-
-        <!-- BOTÓN FINALIZAR COMPRA -->
-        <form method="POST" action="finalizar_compra.php">
-            <button type="submit" class="boton">Finalizar compra</button>
-        </form>
     <?php else: ?>
         <p>Tu carrito está vacío 😢</p>
     <?php endif; ?>

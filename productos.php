@@ -2,7 +2,6 @@
 session_start();
 require 'conexion.php';
 
-
 if (!isset($_SESSION['id_cliente']) || $_SESSION['id_cliente'] == 1) {
     header('Location: iniciarsesion.php');
     exit;
@@ -15,25 +14,30 @@ if (!isset($_SESSION['carrito'])) {
     $_SESSION['carrito'] = [];
 }
 
+$mensaje = "";
+
 // Procesar agregado al carrito
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['agregar'])) {
     $id_producto = intval($_POST['id_producto']);
-    $nombre = $_POST['nombre'];
+    $nombre = $_POST['nombre'] ?? '';
     $precio = floatval($_POST['precio']);
     $cantidad = intval($_POST['cantidad']);
 
-    // Si ya está en el carrito, sumar cantidades
-    if (isset($_SESSION['carrito'][$id_producto])) {
-        $_SESSION['carrito'][$id_producto]['cantidad'] += $cantidad;
+    if ($cantidad < 1) {
+        $mensaje = "La cantidad debe ser al menos 1.";
     } else {
-        $_SESSION['carrito'][$id_producto] = [
-            'nombre' => $nombre,
-            'precio' => $precio,
-            'cantidad' => $cantidad
-        ];
+        // Si ya está en el carrito, sumar cantidades
+        if (isset($_SESSION['carrito'][$id_producto])) {
+            $_SESSION['carrito'][$id_producto]['cantidad'] += $cantidad;
+        } else {
+            $_SESSION['carrito'][$id_producto] = [
+                'nombre' => $nombre,
+                'precio' => $precio,
+                'cantidad' => $cantidad
+            ];
+        }
+        $mensaje = "Producto agregado al carrito 🛒";
     }
-
-    $mensaje = "Producto agregado al carrito 🛒";
 }
 
 // Obtener productos disponibles
@@ -92,7 +96,7 @@ $cliente = $stmt->fetch();
                         <input type="hidden" name="id_producto" value="<?= $p['id_producto'] ?>">
                         <input type="hidden" name="nombre" value="<?= htmlspecialchars($p['nombre']) ?>">
                         <input type="hidden" name="precio" value="<?= $p['precio'] ?>">
-                        <input type="number" name="cantidad" min="0" max="<?= $p['stock'] ?>" value="0" required>
+                        <input type="number" name="cantidad" min="1" max="<?= $p['stock'] ?>" value="1" required>
                 </td>
                 <td>
                         <button type="submit" name="agregar">Agregar 🛒</button>
