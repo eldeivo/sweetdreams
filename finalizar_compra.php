@@ -1,9 +1,13 @@
 <?php
 session_start();
-include 'conexion.php'; // tu archivo de conexión
+include 'conexion.php';
 
-// Simulamos un cliente con saldo (esto vendría de una base de datos normalmente)
-$saldo_cliente = 1000; // Supongamos que el cliente tiene $1000 de saldo
+$id_cliente = $_SESSION['id_cliente'] ?? 1; // ⚠️ Asegúrate de tener esto en sesión
+
+// 1. Obtener saldo actual del cliente
+$sql_saldo = $conn->prepare("SELECT saldo FROM clientes WHERE id_cliente = ?");
+$sql_saldo->execute([$id_cliente]);
+$saldo_cliente = $sql_saldo->fetchColumn();
 
 $productos = $_SESSION['carrito'] ?? [];
 $total = 0;
@@ -16,10 +20,16 @@ $mensaje = "";
 if ($total > $saldo_cliente) {
     $mensaje = "<p class='error'>Saldo insuficiente 😥</p>";
 } else {
-    $saldo_cliente -= $total;
+    $nuevo_saldo = $saldo_cliente - $total;
+
+    // 2. Actualizar saldo en la base de datos
+    $sql_update = $conn->prepare("UPDATE clientes SET saldo = ? WHERE id_cliente = ?");
+    $sql_update->execute([$nuevo_saldo, $id_cliente]);
+
     $mensaje = "<p class='exito'>¡Gracias por tu compra! 🎉</p>";
-    $_SESSION['carrito'] = []; // vaciar carrito
+    $_SESSION['carrito'] = []; // Vaciar carrito
 }
+
 ?>
 
 <!DOCTYPE html>
