@@ -10,12 +10,10 @@ if (isset($_POST['agregar'])) {
         'cantidad' => $_POST['cantidad']
     ];
 
-    // Si el carrito no existe, lo creamos
     if (!isset($_SESSION['carrito'])) {
         $_SESSION['carrito'] = [];
     }
 
-    // Revisar si ya está en el carrito
     $repetido = false;
     foreach ($_SESSION['carrito'] as &$item) {
         if ($item['id'] == $producto['id']) {
@@ -25,7 +23,6 @@ if (isset($_POST['agregar'])) {
         }
     }
 
-    // Si no estaba, lo agregamos
     if (!$repetido) {
         $_SESSION['carrito'][] = $producto;
     }

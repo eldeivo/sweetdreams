@@ -127,6 +127,39 @@ $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <?php endforeach; ?>
         </tbody>
     </table>
+    <h2 style="margin-top: 60px;"> Productos con Poco Stock</h2>
+
+    <?php
+    require_once("funciones.php");
+    $poco_stock = verPocoStock($pdo); // Asegúrate de tener esta función en funciones.php
+    ?>
+
+    <?php if (count($poco_stock) > 0): ?>
+        <table style="margin-top: 20px;">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Stock</th>
+                    <th>Precio</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($poco_stock as $producto): ?>
+                    <tr style="background-color: #fff0f0;">
+                        <td><?= htmlspecialchars($producto['id_producto']) ?></td>
+                        <td><?= htmlspecialchars($producto['nombre']) ?></td>
+                        <td><?= htmlspecialchars($producto['stock']) ?></td>
+                        <td>$<?= htmlspecialchars($producto['precio'], 2) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    <?php else: ?>
+        <p style="margin-top: 20px;">✨ Todos los productos tienen suficiente stock.</p>
+    <?php endif; ?>
+</div>
+
 </div>
 
 <?php if (isset($_SESSION['mensaje'], $_SESSION['mensaje_tipo'])): ?>
@@ -176,6 +209,7 @@ window.addEventListener('DOMContentLoaded', () => {
 unset($_SESSION['mensaje'], $_SESSION['mensaje_tipo']);
 endif;
 ?>
+
 
 </body>
 </html>
