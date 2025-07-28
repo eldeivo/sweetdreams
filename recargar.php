@@ -38,6 +38,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$nuevo_saldo, $id_cliente]);
 
             $mensaje = "Saldo recargado exitosamente. Nuevo saldo: $" . number_format($nuevo_saldo, 2);
+            
+            
+          
         }
     }
 }
@@ -58,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     body {
       font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #f06292, #a2e1ef, #bb82cb);
+      background: linear-gradient(90deg, #ffffff, #f4c4e1);
       color: #4c306e;
       padding: 40px;
       min-height: 100vh;
@@ -135,6 +138,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       font-weight: bold;
       color: #d81b60;
     }
+    .boton-contenedor {
+  text-align: center;
+  margin-top: 30px;
+}
+
+.boton {
+  background: linear-gradient(90deg, #ff8fb1, #ffa4d3);
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 25px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 6px 20px rgba(107, 76, 123, 0.2);
+}
+
+.boton:hover {
+  background-color: #ab52c4;
+}
+
 </style>
 </head>
 <body>
@@ -155,6 +180,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <input type="password" name="password" placeholder="Tu contraseña" required />
     <input type="number" name="monto" placeholder="Monto a recargar" step="0.01" min="1" required />
     <button type="submit">Recargar</button>
+     <a href="productos.php" class="boton">Seguir comprando</a>
+     
   </form>
 </div>
 
