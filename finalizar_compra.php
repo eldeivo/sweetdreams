@@ -70,6 +70,28 @@ if ($total > $saldo_cliente) {
             margin-top: 1rem;
             font-weight: bold;
         }
+        .boton-contenedor {
+  text-align: center;
+  margin-top: 30px;
+}
+
+.boton {
+    background: linear-gradient(90deg, #ff8fb1, #ffa4d3);
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+    box-shadow: 0 6px 20px rgba(107, 76, 123, 0.2);
+}
+
+.boton:hover {
+  background-color: #ab52c4;
+}
+
     </style>
 </head>
 <body>
@@ -96,6 +118,7 @@ if ($total > $saldo_cliente) {
                 <?php endforeach; ?>
             </table>
             <p class="saldo">Tu nuevo saldo es: <strong>$<?= number_format($saldo_cliente, 2) ?></strong></p>
+            <a href="productos.php" class="boton">Seguir comprando</a>
         <?php endif; ?>
     </div>
 </body>
